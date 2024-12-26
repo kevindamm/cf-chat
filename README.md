@@ -53,3 +53,62 @@ The project ID and other details are found in `wrangler.toml`:
 ## Adding an action to the chat
 
 <!-- TODO -->
+
+
+## Uninstalling
+
+To remove the durable objects instances, remove the `[durable_objects]` bindings
+and add a deleted_classes property to the `[[migrations]]` section with an
+updated version, e.g.:
+
+```toml
+[durable_objects]
+bindings = [
+]
+
+[[migrations]]
+tag = "v1" # first version, already defined in repo
+new_classes = ["ChatRoom", "RateLimiter"]
+
+[[migrations]]
+tag = "v2" # modified version, adding some game actions
+new_classes = ["GameState"]
+
+[[migrations]]
+tag = "v3" # deletion migration
+deleted_classes = ["ChatRoom", "GameState", "RateLimiter"]
+```
+
+## Acknowledgements
+
+Special thanks to the contributors of [CloudFlare's demo](https://github.com/cloudflare/workers-chat-demo), on which this is based.
+Thanks also to the [TypeScript annotations provided by smorimoto@github](https://github.com/smorimoto/workers-chat-demo/tree/typescript-port)
+
+
+Both of these primary sources had to be modified significantly to bring their
+dependencies and typing up to date, but their license is retained.
+
+## License (BSD-3)
+
+Copyright (c) 2024 Kevin Damm \
+portions Copyright (c) 2020 Cloudflare \
+All rights reserved.
+
+This repository, and the original work it was partially forked from, are
+provided under the BSD 3 Clause license.  Redistribution of either source code
+or binaries must include the copyright notice, list of conditions and the
+following disclaimer, and the authors may not be used to endorse derivative
+works.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+[LICENSE details](./LICENSE)

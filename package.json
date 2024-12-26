@@ -1,0 +1,26 @@
+{
+  "name": "cf-chat",
+  "version": "0.6.0",
+  "description": "An edge chat service using CloudFlare's Workers and Durable Objects, mediated through websockets.",
+  "scripts": {
+    "types": "wrangler types",
+    "start": "wrangler dev",
+    "deploy": "wrangler publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kevindamm/cf-chat.git"
+  },
+  "keywords": [
+    "cloudflare",
+    "chat",
+    "workers",
+    "durable objects"
+  ],
+  "author": "Kevin Damm",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241224.0",
+    "@tsconfig/strictest": "^2.0.5"
+  }
+}
