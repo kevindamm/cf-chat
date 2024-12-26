@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<style type="text/css">
-* {
-  box-sizing: border-box;
-}
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+<!--
+  Inlining the CSS to avoid the extra request, while the CSS is still simple
+  -->
+  <style type="text/css">
+* { box-sizing: border-box; }
+body { font-family: Arial, Helvetica, sans-serif; }
 
 #chatlog {
   position: fixed;
@@ -53,6 +53,7 @@ p:last-of-type {
   display: none;
 }
 
+/* small screens remove the participant panel and right-gutter. */
 @media(max-width:600px) {
   #roster { display: none; }
   #chatlog { right: 0; }
@@ -142,61 +143,46 @@ p:last-of-type {
   height: 2em;
 }
 
+/* small screens font sizing */
 @media(max-width:660px) {
   #name-input, #room-form { font-size: 150%; }
   #name-form p { font-size: 75%; }
 }
+/* very narrow screens font sizing */
 @media(max-width:500px) {
   #name-input, #room-form { font-size: 100%; }
   #name-form p { font-size: 50%; }
 }
+  </style>
+</head>
 
-#go-public {
-  width: 4em;
-}
-#go-private {
-  width: 20em;
-}
+<body>
+  <form id="name-form" action="/noop">
+    <input id="name-input" placeholder="your name">
+  </form>
+  <form id="room-form" action="/noop">
+    <input id="room-name" placeholder="room name">
+    <button id="room-join">Join</button>
+  </form>
+  <form id="chatroom" action="/noop">
+    <div id="chatlog">
+      <div id="spacer"></div>
+    </div>
+    <div id="roster"></div>
+    <input id="chat-input">
+  </form>
+</body>
 
-</style>
-
-<!--===================================================================================-->
-<!-- The actual HTML. There is not much of it. -->
-
-  </head>
-  <body>
-    <form id="name-form" action="/fake-form-action">
-      <input id="name-input" placeholder="your name">
-      <p>This chat runs entirely on the edge, powered by<br>
-        <a href="https://blog.cloudflare.com/introducing-workers-durable-objects" target="_blank">Cloudflare Workers Durable Objects</a></p>
-    </form>
-    <form id="room-form" action="/fake-form-action">
-      <p>Enter a public room:</p>
-      <input id="room-name" placeholder="room name"><button id="go-public">Go &raquo;</button>
-      <p>OR</p>
-      <button id="go-private">Create a Private Room &raquo;</button>
-    </form>
-    <form id="chatroom" action="/fake-form-action">
-      <div id="chatlog">
-        <div id="spacer"></div>
-      </div>
-      <div id="roster"></div>
-      <input id="chat-input">
-    </form>
-  </body>
-
-<!--===================================================================================-->
-<!-- Client-side JavaScript code for the app. -->
 
 <script type="text/javascript">
-let currentWebSocket = null;
+let currentWS = null;
 
 let nameForm = document.querySelector("#name-form");
 let nameInput = document.querySelector("#name-input");
 let roomForm = document.querySelector("#room-form");
 let roomNameInput = document.querySelector("#room-name");
-let goPublicButton = document.querySelector("#go-public");
-let goPrivateButton = document.querySelector("#go-private");
+let roomJoin = document.querySelector("#room-join");
+
 let chatroom = document.querySelector("#chatroom");
 let chatlog = document.querySelector("#chatlog");
 let chatInput = document.querySelector("#chat-input");
@@ -205,8 +191,8 @@ let roster = document.querySelector("#roster");
 // Is the chatlog scrolled to the bottom?
 let isAtBottom = true;
 
-let username;
-let roomname;
+let username = "";
+let roomname = "";
 
 let hostname = window.location.host;
 if (hostname == "") {
@@ -255,30 +241,18 @@ function startRoomChooser() {
     }
   });
 
-  goPublicButton.addEventListener("click", event => {
+  roomJoin.addEventListener("click", event => {
     roomname = roomNameInput.value;
     if (roomname.length > 0) {
       startChat();
     }
   });
 
-  goPrivateButton.addEventListener("click", async event => {
-    roomNameInput.disabled = true;
-    goPublicButton.disabled = true;
-    event.currentTarget.disabled = true;
-
-    let response = await fetch("https://" + hostname + "/api/room", {method: "POST"});
-    if (!response.ok) {
-      alert("something went wrong");
-      document.location.reload();
-      return;
-    }
-
-    roomname = await response.text();
-    startChat();
-  });
-
   roomNameInput.focus();
+}
+
+function validRoomName(roomname) {
+  return roomname.length <= 32 || roomname.match(/^[0-9a-f]{64}$/);
 }
 
 function startChat() {
@@ -287,7 +261,7 @@ function startChat() {
   // Normalize the room name a bit.
   roomname = roomname.replace(/[^a-zA-Z0-9_-]/g, "").replace(/_/g, "-").toLowerCase();
 
-  if (roomname.length > 32 && !roomname.match(/^[0-9a-f]{64}$/)) {
+  if (!validRoomName(roomname)) {
     addChatMessage("ERROR", "Invalid room name.");
     return;
   }
@@ -313,8 +287,8 @@ function startChat() {
   chatroom.addEventListener("submit", event => {
     event.preventDefault();
 
-    if (currentWebSocket) {
-      currentWebSocket.send(JSON.stringify({message: chatInput.value}));
+    if (currentWS) {
+      currentWS.send(JSON.stringify({message: chatInput.value}));
       chatInput.value = "";
 
       // Scroll to bottom whenever sending a message.
@@ -366,7 +340,7 @@ function join() {
   let rejoin = async () => {
     if (!rejoined) {
       rejoined = true;
-      currentWebSocket = null;
+      currentWS = null;
 
       // Clear the roster.
       while (roster.firstChild) {
@@ -386,7 +360,7 @@ function join() {
   }
 
   ws.addEventListener("open", event => {
-    currentWebSocket = ws;
+    currentWS = ws;
 
     // Send user info message.
     ws.send(JSON.stringify({name: username}));
@@ -414,18 +388,12 @@ function join() {
         wroteWelcomeMessages = true;
         addChatMessage(null,
             "* This is a demo app built with Cloudflare Workers Durable Objects. The source code " +
-            "can be found at: https://github.com/cloudflare/workers-chat-demo");
+            "can be found at: https://github.com/kevindamm/cf-chat");
         addChatMessage(null,
-            "* WARNING: Participants in this chat are random people on the internet. " +
-            "Names are not authenticated; anyone can pretend to be anyone. The people " +
-            "you are chatting with are NOT Cloudflare employees. Chat history is saved.");
-        if (roomname.length == 64) {
-          addChatMessage(null,
-              "* This is a private room. You can invite someone to the room by sending them the URL.");
-        } else {
-          addChatMessage(null,
-              "* Welcome to #" + roomname + ". Say hi!");
-        }
+            "* WARNING: Participants in this chat are random people on the internet. <br>" +
+            "Chat history is saved for no more than 30 days.");
+        addChatMessage(null,
+            "* Welcome to #" + roomname + ". Say hi!");
       }
     } else {
       // A regular chat message.
@@ -456,11 +424,9 @@ function addChatMessage(name, text) {
   }
   p.appendChild(document.createTextNode(text));
 
-  // Append the new chat line, making sure that if the chatlog was scrolled to the bottom
-  // before, it remains scrolled to the bottom, and otherwise the scroll position doesn't
-  // change.
   chatlog.appendChild(p);
   if (isAtBottom) {
+    // Only change the scroll position if view is at the bottom of the chatlog.
     chatlog.scrollBy(0, 1e8);
   }
 }

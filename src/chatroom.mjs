@@ -18,7 +18,7 @@ export class ChatRoom {
 
     this.state.getWebSockets().forEach((socket) => {
       let meta = socket.deserializeAttachment();
-      let limiterIdString = this.env.limiters.idFromString(meta.limiterId)
+      let limiterIdString = this.env.limiters.idFromString(meta.limiter_id)
       let limiter = new RateLimitedClient(
         () => this.env.limiters.get(limiterIdString),
         // Using error code 1011 as above (server terminating, unexpected)

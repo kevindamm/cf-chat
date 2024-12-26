@@ -1,9 +1,14 @@
-// The RateLimiter Durable Object class.
+// The RateLimiter Durable Object class.  Exposed as DEBOUNCE env binding for
+// workers; 5 seconds per action is hard-coded but could be parameterized, and
+// could be expanded to a reservoir of allowed actions over a sliding window.
 
-// This is utilized in ChatRoom, to apply a per-IP-address rate limit. These limits are
-// global, i.e. they apply across all chat rooms, so if a user spams one chat room, they will find
-// themselves rate limited in all other chat rooms simultaneously.
+// This is utilized in ChatRoom, to apply a per-IP-address rate limit. These
+// limits are global, i.e. they apply across all chat rooms, so if a user spams
+// one chat room, they will find themselves rate limited in all other chat rooms
+// and game sessions simultaneously.
 export class RateLimiter {
+  /* private */ nextAllowedTime; // number
+
   constructor(state, env) {
     // Timestamp at which this IP will next be allowed to send a message. Start in the distant
     // past, i.e. the IP can send a message now.

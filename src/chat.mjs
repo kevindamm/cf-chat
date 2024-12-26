@@ -1,23 +1,39 @@
-// CloudFlare worker as an ES module.
+// Chat application using CloudFlare workers.
+//
+// Structured as an ES Module because that is how the Durable Object bindings
+// are naturally provided from the CloudFlare APIs.  Simpler workers can be
+// plain javascript or typescript and use hooks for the "fetch" event, but this
+// ES Module approach is nicer because it allows us to modularize it.
 
-import HTML from "./chat.html";
+import HOME_HTML from "./home.html";
 export { ChatRoom } from "./chatroom.mjs";
 export { RateLimiter } from "./ratelimiter.mjs";
 
+// REQUIRED ENVIRONMENT BINDINGS
+//
+// Durable Objects:
+//  - ROOMS (mapped to the ChatRoom class)
+//  - DEBOUNCE (mapped to the RateLimiter class)
+//
+// These are made available via [fetch()]'s second argument (`env`), see the
+// related modules for more details.
 
-// Module's default export is used by CloudFlare workers as a kind of API.
+// The module's default export is used by CloudFlare workers as a kind of API.
 export default {
   async fetch(request, env) {
     return await handleErrors(request, async () => {
       let url = new URL(request.url);
       let path = url.pathname.slice(1).split('/');
 
+      // Root path url `/` (or empty) responds with the root page html.
       if (!path[0]) {
-        return new Response(HTML, {
-          headers: {"Content-Type": "text/html;charset=UTF-8"}
-        })
+        return new Response(HOME_HTML, {
+          headers: {
+            "Content-Type": "text/html;charset=UTF-8"
+          }});
       }
 
+      // Top-level path may be /chat or /play.
       switch (path[0]) {
         case "api":
           return handleApiRequest(path.slice(1), request, env);
