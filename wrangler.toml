@@ -10,6 +10,11 @@ bindings = [
   { name = "DEBOUNCE", class_name = "RateLimiter" },
 ]
 
+[[rules]]
+type = "Data"
+globs = ["**/*.html", "**/*.md", "**/*.pug"]
+fallthrough = false
+
 [[migrations]]
 tag = "v1"
 new_classes = ["ChatRoom", "RateLimter"]
