@@ -12,7 +12,7 @@ bindings = [
 
 [[rules]]
 type = "Data"
-globs = ["**/*.html", "**/*.md", "**/*.pug"]
+globs = ["**/*.html", "**/*.pug"]
 fallthrough = false
 
 [[migrations]]
