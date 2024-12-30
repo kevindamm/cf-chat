@@ -1,11 +1,14 @@
 {
   "name": "cf-chat",
-  "version": "0.6.0",
+  "version": "0.6.5",
   "description": "An edge chat service using CloudFlare's Workers and Durable Objects, mediated through websockets.",
   "scripts": {
-    "types": "wrangler types",
+    "cf-typegen": "wrangler types",
     "start": "wrangler dev",
-    "deploy": "wrangler publish"
+    "dev": "wrangler dev",
+    "test": "vitest",
+    "deploy": "wrangler deploy",
+    "publish": "wrangler publish"
   },
   "repository": {
     "type": "git",
@@ -23,7 +26,11 @@
     "@cloudflare/vitest-pool-workers": "^0.5.40",
     "@cloudflare/workers-types": "^4.20241224.0",
     "@tsconfig/strictest": "^2.0.5",
+    "typescript": "^5.5.2",
     "vitest": "2.1.8",
     "wrangler": "^3.99.0"
+  },
+  "engines": {
+    "node": ">=18.20.0"
   }
 }
