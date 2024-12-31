@@ -1,4 +1,5 @@
 import {
+  env,
   createExecutionContext,
   waitOnExecutionContext,
 } from "cloudflare:test";
@@ -14,10 +15,6 @@ describe("Hello World worker", () => {
   it("responds with Hello World!", async () => {
     const request = new IncomingRequest("http://example.com");
     const ctx = createExecutionContext();
-    const env = {
-      ROOMS: undefined,
-      DEBOUNCE: undefined,
-    };
     var response;
 
     if (api_worker && api_worker.fetch) {

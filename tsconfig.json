@@ -30,5 +30,6 @@
 	"exclude": ["test"],
 	"include": [
 		"src/**/*.html",
+		"src/**/favicon.ico",
 		"src/**/*.ts"]
 }
