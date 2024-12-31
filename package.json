@@ -4,10 +4,9 @@
   "description": "An edge chat service using CloudFlare's Workers and Durable Objects, mediated through websockets.",
   "scripts": {
     "cf-typegen": "wrangler types",
-    "start": "wrangler dev",
     "dev": "wrangler dev",
     "test": "vitest",
-    "deploy": "wrangler deploy",
+    "deploy": "wrangler deploy --minify",
     "publish": "wrangler publish"
   },
   "repository": {
