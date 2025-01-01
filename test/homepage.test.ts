@@ -5,7 +5,7 @@ import {
 } from "cloudflare:test";
 import { describe, it, expect, assert } from "vitest";
 // Could import any other source file/function here
-import api_worker from "../src/api";
+import api_worker from "../src/router";
 
 // For now, you'll need to do something like this to get a correctly-typed
 // `Request` to pass to `worker.fetch()`.
