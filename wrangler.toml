@@ -7,8 +7,8 @@ compatibility_flags = ["nodejs_compat"]
 [durable_objects]
 bindings = [
   { name = "ROOMS", class_name = "ChatRoom" },
-  { name = "DEBOUNCE", class_name = "RateLimiter" },
   { name = "GAMES", class_name = "GameSession" },
+  { name = "DEBOUNCE", class_name = "RateLimiter" },
 ]
 
 [[rules]]

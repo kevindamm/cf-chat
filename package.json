@@ -31,5 +31,8 @@
   },
   "engines": {
     "node": ">=18.20.0"
+  },
+  "dependencies": {
+    "hono": "^4.6.15"
   }
 }

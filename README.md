@@ -91,7 +91,6 @@ dependencies and typing up to date, but their license is retained.
 ## License (BSD-3)
 
 Copyright (c) 2024 Kevin Damm \
-portions Copyright (c) 2020 Cloudflare \
 All rights reserved.
 
 This repository, and the original work it was partially forked from, are
