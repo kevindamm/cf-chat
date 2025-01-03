@@ -1,26 +1,53 @@
-import { RateLimitedClient } from "./ratelimiter.mjs"
+// Copyright (c) 2024 Kevin Damm
+// All rights reserved.
+// BSD-3-Clause License
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// 1. Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+// 3. Neither the name of mosquitto nor the names of its
+//    contributors may be used to endorse or promote products derived from
+//    this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
-// The ChatRoom (a Durable Object class) coordinates all user interactions with
+import { DurableObject } from "cloudflare:workers"
+import { RateLimitedClient } from "./ratelimiter"
+
+import type { Env } from "./env"
+
+// Chat rooms as a Durable Object class, coordinates all user interactions with
 // a specific chat room.  The room broadcasts messages from each participant to
 // all of the others via a Session object for each member in the chat.
-export class ChatRoom {
-  /* private */ sessions; // map[string]Session
-  /* private */ env; // Env (environment bindings)
-  /* private */ state; // DurableObjectState
-  /* private */ storage; // DurableObjectStorage
-  /* private */ lastUpdated; // number
+export class ChatRoom extends DurableObject<Env> {
+  private state: DurableObjectState;
+  private storage: DurableObjectStorage;
 
-  constructor(state /* DurableObjectState */, env /* Env */) {
-    this.sessions = new Map();
-    this.env = env;
+  constructor(state: DurableObjectState, env: Env) {
+    super(state, env)
     this.state = state;
     this.storage = state.storage;
 
-    this.state.getWebSockets().forEach((socket) => {
+    this.state.getWebSockets().forEach((socket: ) => {
       let meta = socket.deserializeAttachment();
-      let limiterIdString = this.env.limiters.idFromString(meta.limiter_id)
+      let limiter_id = this.env.DEBOUNCE.idFromString(meta.limiter_id)
       let limiter = new RateLimitedClient(
-        () => this.env.limiters.get(limiterIdString),
+        () => this.env.limiters.get(limiter_id),
         // Using error code 1011 as above (server terminating, unexpected)
         // from https://www.rfc-editor.org/rfc/rfc6455.html#section-7.4.1
         err => socket.close(1011, err.stack));
@@ -87,7 +114,7 @@ export class ChatRoom {
     });
   }
 
-  async ws_message(socket, msg) {
+  async webSocketMessage(socket, msg) {
     try {
       let session = this.sessions.get(socket);
       if (session.quit) {
@@ -96,6 +123,14 @@ export class ChatRoom {
     } catch (err) {
       socket.send(JSON.stringify({error: err.stack, message: err.message}));
     }
+  }
+
+  async webSocketClose(socket /*, code, reason, wasClean */) {
+    this.closeOrHandleError(socket);
+  }
+
+  async webSocketError(socket /*, error */) {
+    this.closeOrHandleError(socket);
   }
 
   async closeOrHandleError(socket) {
@@ -107,13 +142,6 @@ export class ChatRoom {
     }
   }
 
-  async webSocketClose(socket /*, code, reason, wasClean */) {
-    this.closeOrHandleError(socket);
-  }
-
-  async webSocketError(socket /*, error */) {
-    this.closeOrHandleError(socket);
-  }
 
   broadcast(message) {
     // convert to JSON string if not already encoded as a string.

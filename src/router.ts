@@ -1,11 +1,38 @@
+// Copyright (c) 2024, Kevin Damm
+// BSD-3-Clause license (see /LICENSE for details).
+
 import HOME_HTML from "./home.html";
-import FAVICON_BYTES from "./favicon.ico";
+import FAVICON_BYTES from "./favicon.ico"
 
 // DurableObject dependencies, routed from this worker.
-export { ChatRoom } from "./chatroom.mjs";
-export { RateLimiter } from "./ratelimiter.mjs";
+export { ChatRoom } from "./chatroom";
+export { RateLimiter } from "./ratelimiter";
 export { GameSession } from "./gamesession";
+import { Env } from "./env"
 
+import { Hono } from 'hono';
+import { jwt } from 'hono/jwt';
+import type { JwtVariables } from "hono/jwt";
+import { logger } from 'hono/logger';
+
+const app = new Hono<{ Bindings: Env }>()
+
+app.use(logger())
+
+app.get('/', (ctx) => ctx.html(HOME_HTML))
+app.get('/favicon.ico', (ctx) => ctx.body(FAVICON_BYTES))
+
+app.post('/chat', (ctx) => {
+  let id = ctx.env.ROOMS.newUniqueId();
+  return new Response(id.toString(), {
+    // TODO Access-Control-Allow-Origin for elements of an allow-list.
+    headers: {"Access-Control-Allow-Origin": "*"},
+  })
+})
+
+export default app
+
+/*
 
 // API worker handles publicly-routable URLs; may fetch other workers' routes.
 //
@@ -62,3 +89,4 @@ function routeGameSession(path: string[], env: Env): Response {
   // unrecognized paths get redirected to play-root as GET.
   return Response.redirect("/play/", 303);
 }
+*/

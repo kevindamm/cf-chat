@@ -1,15 +1,18 @@
-// The RateLimiter Durable Object class.  Exposed as DEBOUNCE env binding for
+// Rate Limiting as a Durable Object.  Exposed as DEBOUNCE env binding for
 // workers; 5 seconds per action is hard-coded but could be parameterized, and
 // could be expanded to a reservoir of allowed actions over a sliding window.
+
+import { DurableObject, DurableObjectState } from "cloudflare:workers";
+import type { Env } from "./env"
 
 // This is utilized in ChatRoom, to apply a per-IP-address rate limit. These
 // limits are global, i.e. they apply across all chat rooms, so if a user spams
 // one chat room, they will find themselves rate limited in all other chat rooms
 // and game sessions simultaneously.
 export class RateLimiter {
-  /* private */ nextAllowedTime; // number
+  private nextAllowedTime; // number
 
-  constructor(state, env) {
+  constructor(/* state, env */) {
     // Timestamp at which this IP will next be allowed to send a message. Start in the distant
     // past, i.e. the IP can send a message now.
     this.nextAllowedTime = 0;
@@ -34,39 +37,42 @@ export class RateLimiter {
       //
       // We provide a "grace" period of 20 seconds, meaning that the client can make 4-5 requests
       // in a quick burst before they start being limited.
-      let cooldown = Math.max(0, this.nextAllowedTime - now - 20);
-      return new Response(cooldown);
+      let cooldownTime = Math.max(0, this.nextAllowedTime - now - 20);
+      return new Response(cooldownTime);
     })
   }
 }
 
 // RateLimiterClient implements rate limiting logic on the caller's side.
+//
+// [openLimiter()] returns a new Durable Object stub for the RateLimiter object
+//   that manages the limit. This may be called multiple times as needed to
+//   reconnect, if the connection is lost.
+// [reportError(err)] is called when something goes wrong and the rate limiter
+//   is broken. It should probably disconnect the client, so that they can
+//   reconnect and start over.
 export class RateLimitedClient {
+  /* private */ openLimiter; // function() RateLimiter
+  /* private */ reportError; // function(err)
+  /* private */ limiter; // RateLimiter
+  /* private */ cooling; // boolean
+
   // The constructor takes two functions:
-  // * getLimiterStub() returns a new Durable Object stub for the RateLimiter object that manages
-  //   the limit. This may be called multiple times as needed to reconnect, if the connection is
-  //   lost.
-  // * reportError(err) is called when something goes wrong and the rate limiter is broken. It
-  //   should probably disconnect the client, so that they can reconnect and start over.
-  constructor(getLimiterStub, reportError) {
-    this.getLimiterStub = getLimiterStub;
+  constructor(openLimiter, reportError) {
+    this.openLimiter = openLimiter;
     this.reportError = reportError;
 
-    // Call the callback to get the initial stub.
-    this.limiter = getLimiterStub();
-
-    // When `inCooldown` is true, the rate limit is currently applied and checkLimit() will return
-    // false.
-    this.inCooldown = false;
+    this.limiter = this.openLimiter();
+    this.cooling = false;
   }
 
   // Call checkLimit() when a message is received to decide if it should be blocked due to the
   // rate limit. Returns `true` if the message should be accepted, `false` to reject.
   checkLimit() {
-    if (this.inCooldown) {
+    if (this.cooling) {
       return false;
     }
-    this.inCooldown = true;
+    this.cooling = true;
     this.callLimiter();
     return true;
   }
@@ -98,8 +104,8 @@ export class RateLimitedClient {
       let cooldown = +(await response.text());
       await new Promise(resolve => setTimeout(resolve, cooldown * 1000));
 
-      // Done waiting.
-      this.inCooldown = false;
+      // Done cooling down.
+      this.cooling = false;
     } catch (err) {
       this.reportError(err);
     }
