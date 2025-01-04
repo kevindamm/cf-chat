@@ -10,11 +10,11 @@ hero:
       text: Get Started
       link: /1-project-setup
     - theme: alt
-      text: Introduction and Goals
+      text: Introduction
       link: /0-intro
     - theme: alt
-      text: Demo
-      link: /demo
+      text: Objectives
+      link: /0-intro-objectives
 
 features:
   - title: Low Cost Solutions
@@ -24,6 +24,6 @@ features:
     details: These tutorials have been annotated and structured with the intent of revealing more information when more explanation is needed, but remaining short and to the point if collapsible elements are not toggled and links unvisited.
 
   - title: Security by Design
-    details: The tutorials here include explanations of the forethought that went into their design, including attention to security aspects.  Most other tutorials skip over security in the interest of keeping things simple, but really it as important as any feature.
+    details: The tutorials here include explanations of the forethought that went into their design, including attention to security aspects.  Most other tutorials skip over security in the interest of keeping things simple, but really it is as important as any feature.
 ---
 

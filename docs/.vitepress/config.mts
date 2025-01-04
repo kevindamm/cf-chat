@@ -6,6 +6,7 @@ export default defineConfig({
   description: "using Cloudflare, TypeScript and Hono",
   themeConfig: { // https://vitepress.dev/reference/default-theme-config
     nav: [
+      { text: '', link: '' },
     ],
 
     sidebar: [
@@ -39,7 +40,7 @@ export default defineConfig({
     ],
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/kevindamm/cf-chat/docs' }
+      { icon: 'github', link: 'https://github.com/kevindamm/cf-chat' }
     ]
   }
 })
