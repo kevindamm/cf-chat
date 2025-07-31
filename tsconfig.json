@@ -1,35 +1,10 @@
 {
-	"compilerOptions": {
-		/* Visit https://aka.ms/tsconfig.json to read more about this file */
-
-		"target": "esnext",
-		"lib": ["esnext"],
-		"module": "esnext",
-		"types": [
-			"@cloudflare/workers-types/experimental",
-			"@cloudflare/vitest-pool-workers"],
-
-		"moduleResolution": "bundler",
-		/* Enable importing .json files */
-		"resolveJsonModule": true,
-		"strict": true,
-
-		/* allow JS but check for type errors, disable after fully migrated */
-		"allowJs": true,
-		"checkJs": true,
-		/* Skip type checking all .d.ts files. */
-		"skipLibCheck": true,
-
-		/* Disable emitting files from a compilation. */
-		"noEmit": true,
-
-		"isolatedModules": true,
-		"allowSyntheticDefaultImports": true,
-		"forceConsistentCasingInFileNames": true
-	},
-	"exclude": ["test"],
-	"include": [
-		"src/**/*.html",
-		"src/**/favicon.ico",
-		"src/**/*.ts"]
+  "files": [],
+  "references": [
+    { "path": "./.nuxt/tsconfig.app.json" },
+    { "path": "./.nuxt/tsconfig.server.json" },
+    { "path": "./.nuxt/tsconfig.shared.json" },
+    { "path": "./.nuxt/tsconfig.node.json" }
+  ]
 }
+
