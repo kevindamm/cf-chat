@@ -4,20 +4,30 @@ A chat webapp using websockets and CloudFlare's workers with durable objects,
 in TypeScript.  Includes a few examples of non-chat actions (e.g., useful in a
 multi-player game or other realtime simulation with streaming updates).
 
+Uses the following technologies:
+
+* Nuxt.js framework to keep code uncluttered and organized
+* Durable Object storage to maintain the chat logs and websocket connections
+* D1 (cloudflare's managed database) for indexing users and logs
+* Kinde for registering and authenticating users on the site
+* 
+
+
 ## Dependencies
 
-- a **CloudFlare** account (and a paid account for Durable Objects)
+- a **CloudFlare** account with "Workers paid" subscription ($5/month)
 
-  - D1 may be used instead of Durable Objects; there are tradeoffs, however,
-  with respect to when D1 pricing kicks in vs Free quota for D.O. and the 20:1
-  request ratio of websocket requests.  The advantages of Durable Objects are
-  why it is used in this Workers implementation.
+- **Node** (for local dev of workers) and **pnpm**, **npx**.
 
-- **Node** (for local dev of workers) and **npm**, **npx**.
+- **wrangler** for interacting with CloudFlare (executed via **npx**).
 
-- **wrangler** for interacting with CloudFlare (installed via **npx**).
-
-- 
+> [!NOTE]
+> It is possible to modify this application to fit entirely within the free
+> tier, but you miss out on websockets and a significant increase in quotas.
+>
+> You would have to store everything on D1 and keep some workers running
+> constantly, while Durable Objects can sleep between websocket messages (if
+> configured correctly using Cloudflare's API) and provide extra non-D1 storage.
 
 
 ## Setup
@@ -50,6 +60,9 @@ The project ID and other details are found in `wrangler.toml`:
 4. [ ] Test the chat interaction (open with multiple browser tabs)
 
 
+Also check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment)
+of Nuxt.js for more information.
+
 ## Adding an action to the chat
 
 <!-- TODO -->
@@ -79,35 +92,3 @@ tag = "v3" # deletion migration
 deleted_classes = ["ChatRoom", "GameState", "RateLimiter"]
 ```
 
-## Acknowledgements
-
-Special thanks to the contributors of [CloudFlare's demo](https://github.com/cloudflare/workers-chat-demo), on which this is based.
-Thanks also to the [TypeScript annotations provided by smorimoto@github](https://github.com/smorimoto/workers-chat-demo/tree/typescript-port)
-
-
-Both of these primary sources had to be modified significantly to bring their
-dependencies and typing up to date, but their license is retained.
-
-## License (BSD-3)
-
-Copyright (c) 2024 Kevin Damm \
-All rights reserved.
-
-This repository, and the original work it was partially forked from, are
-provided under the BSD 3 Clause license.  Redistribution of either source code
-or binaries must include the copyright notice, list of conditions and the
-following disclaimer, and the authors may not be used to endorse derivative
-works.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-[LICENSE details](./LICENSE)

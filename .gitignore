@@ -1,9 +1,9 @@
 # prod
 dist/
-docs/.vitepress/cache
-docs/.vitepress/dist
+.output/
 
 # dev
+.nuxt/
 .yarn/
 !.yarn/releases
 .vscode/*
@@ -15,7 +15,7 @@ docs/.vitepress/dist
 
 # deps
 node_modules/
-.wrangler
+.wrangler/
 
 # env
 .env
